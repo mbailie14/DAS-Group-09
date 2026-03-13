@@ -18,6 +18,10 @@ The 2008 - 2012 Scottish Health Survey provides key insight into the health tren
 
 # Exploratory Data Analysis {#sec-eda}
 
+Boxplots by year, analysis.
+Table
+Scatterplot
+
 # Formal Data Analysis {#sec-fda}
 
 # Conclusions {#sec-conc}
