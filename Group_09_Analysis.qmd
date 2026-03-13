@@ -32,10 +32,47 @@ The 2008 - 2012 Scottish Health Survey provides key insight into the health tren
 
 # Exploratory Data Analysis {#sec-eda}
 
-Boxplots by year, analysis.
-Table
-Scatterplot
-Hello this is a test
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-barplot
+#| fig-cap: Barplot showing the proportion of each BMI Group, grouped by year
+ggplot(DAProject9, aes(x = factor(Year), fill = BMIgroup)) +
+  geom_bar(position = "fill") +
+  labs(
+    title = "Proportion of BMI Group by Year",
+    x = "Year", 
+    y = "Proportion")
+```
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-linegraph
+#| fig-cap: Linegraph showing the trend of BMI Group, year on year
+#| error: true
+summary_table <- DAProject9 %>%
+  group_by(Year, BMIgroup) %>%
+  summarise(Count = n(), .groups = "drop_last") %>%
+  mutate(
+    Total_In_Year = sum(Count),
+    Proportion = Count / Total_In_Year)
+  
+ggplot(summary_table, aes(x = factor(Year), y = Proportion, color = BMIgroup, group = BMIgroup)) +
+  geom_line(linewidth = 1.2) + 
+  geom_point(size=3) +
+  labs(
+    title = "Trend of BMI Groups",
+    x = "Year", 
+    y = "Proportion of Population",
+    color = "BMI Group"
+  )
+```
+
+
 # Formal Data Analysis {#sec-fda}
 
 # Conclusions {#sec-conc}
