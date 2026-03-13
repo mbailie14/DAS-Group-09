@@ -10,6 +10,20 @@ editor_options:
 theme: flatly
 ---
 
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+library(ggplot2)
+library(tidyverse)
+library(sjPlot)
+library(performance)
+library(kableExtra)
+#this is the name given to the .csv file. If anyone is making plots, use data=DAProject9
+DAProject9 <- read.csv("DAProject9.csv")
+```
+
+
 # Introduction {#sec-intro}
 
 The 2008 - 2012 Scottish Health Survey provides key insight into the health trends of Scottish residents. It provides information on *age*, *sex*, *employment status*, and *BMI* of people, sorted by the year the survey data was collected. The following report seeks to explore the relationship of obesity over time, exploring whether or not the prevalence of obesity is changing. The report also seeks to explore whether or not there any differences in obesity by age, gender, socio-economic status or lifestyle factors.
