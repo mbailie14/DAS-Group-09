@@ -71,7 +71,39 @@ ggplot(summary_table, aes(x = factor(Year), y = Proportion, color = BMIgroup, gr
     color = "BMI Group"
   )
 ```
+As displayed in @fig-barplot and @fig-linegraph, the proportion of each *BMIgroup* category does not appear to have changed much between 2008-2012, based off of the data collected. @fig-linegraph shows that the proportion of *Underweight* responses has remained constant, whereas *Overweight*, *Obese*, and *Normal* have displayed small changes, but there does not appear to be a trend year-on-year.
 
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: tbl-employmentprop
+#| tbl-cap: Percentage of each BMIgroup category in each category of Employment
+
+emp_summary <- DAProject9 %>%
+  group_by(Employment, BMIgroup) %>%
+  summarise(Count = n(), .groups = "drop_last") %>%
+  mutate(
+    Proportion = Count / sum(Count),
+    Percentage = round(Proportion * 100, 1)
+  ) %>%
+  ungroup()
+emp_table_wide <- emp_summary %>%
+  select(Employment, BMIgroup, Percentage) %>%
+  pivot_wider(
+    names_from = BMIgroup, 
+    values_from = Percentage, 
+    values_fill = 0
+  ) %>%
+  mutate(across(-Employment, ~paste0(., "%")))
+
+kable(emp_table_wide, caption = "Percentage of BMI Group within each Employment Category")
+
+```
+
+We see from @tbl-employmentprop that based off of the category of the variable *Employment*, the percentage of people in full-time education and obese or overweight is significantly lower, whereas the percentage of those with a normal BMI is much higher.
+
+The table also shows that those unable to work and those retired appear to have a higher percentage in the overweight category compared to other levels of *Employment*. These same groups also show a lower percentage of normal BMI.
 
 # Formal Data Analysis {#sec-fda}
 
