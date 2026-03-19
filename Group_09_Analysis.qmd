@@ -1,13 +1,18 @@
 ---
 title: "Group 9 Project"
-number-sections: true
-format: 
-  html:
-    embed-resources: true
-    code-tools: true
-editor_options: 
-  chunk_output_type: console
-theme: flatly
+format:
+  pdf:
+    documentclass: article
+    geometry:
+      - margin=1.8cm
+    fontsize: 10pt
+    linestretch: 1.05
+    fig-pos: "htbp"
+    number-sections: false
+execute:
+  echo: false
+  warning: false
+  message: false
 ---
 
 ```{r}
@@ -19,7 +24,8 @@ library(tidyverse)
 library(sjPlot)
 library(performance)
 library(kableExtra)
-#this is the name given to the .csv file. If anyone is making plots, use data=DAProject9
+library(knitr)
+library(stringr)
 DAProject9 <- read.csv("DAProject9.csv")
 ```
 
