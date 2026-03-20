@@ -32,15 +32,15 @@ The *2008 - 2012 Scottish Health Survey* provides key insight into the health tr
 
 ## Variables
 
-**AgeGroup**: Age range of individual.
+`AgeGroup`: Age range of individual.
 
-**Sex**: Male/Female.
+`Sex`: Male/Female.
 
-**Employment**: Employment status of individual.
+`Employment`: Employment status of individual.
 
-**Year**: Year of survey data collection.
+`Year`: Year of survey data collection.
 
-**BMIgroup**: Weight classification group of individual.
+`BMIgroup`: Weight classification group of individual.
 
 ## Questions of Interest
 
