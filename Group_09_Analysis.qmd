@@ -9,31 +9,7 @@ editor_options:
   chunk_output_type: console
 theme: flatly
 ---
-
-```{r}
-#| echo: false
-#| warning: false
-#| message: false
-library(ggplot2)
-library(tidyverse)
-library(sjPlot)
-library(performance)
-library(kableExtra)
-#this is the name given to the .csv file. If anyone is making plots, use data=DAProject9
-DAProject9 <- read.csv("DAProject9.csv")
-```
-
-
-# Introduction {#sec-intro}
-
-The 2008 - 2012 Scottish Health Survey provides key insight into the health trends of Scottish residents. It provides information on *age*, *sex*, *employment status*, and *BMI* of people, sorted by the year the survey data was collected. The following report seeks to explore the relationship of obesity over time, exploring whether or not the prevalence of obesity is changing. The report also seeks to explore whether or not there any differences in obesity by age, gender, socio-economic status or lifestyle factors.
-
-@sec-eda consists of an exploratory analysis of the Survey data and explores the potential relationship between obesity and time, and whether there are any differences in obesity by other factors. @sec-fda contains the results from fitting a multiple regression model to the data, as well as the assessment of the model assumptions. Concluding remarks are given in @sec-conc.
-
-# Exploratory Data Analysis {#sec-eda}
-
-# Formal Data Analysis {#sec-fda}
-Formal analysis was conducted using multivariable logistic regression, with obesity status as the binary response. Obesity was defined from `BMIgroup`, with respondents in the Obese category coded as obese and all other respondents coded as not obese. Year, age group, sex and employment status were treated as categorical explanatory variables. As the dataset does not include direct lifestyle measures, the analysis focuses on the available survey year, demographic and socio-economic variables, with employment status serving as the socio-economic indicator.
+Formal analysis was carried out using multivariable logistic regression, with obesity status as the binary response. Following the project brief, a new response variable was created from `BMIgroup`: respondents in the Obese category were coded as obese, while all remaining respondents were coded as not obese. Year, age group, sex and employment status were all entered as categorical explanatory variables. Because Project 9 does not contain direct lifestyle measures, the formal model focuses on the available survey year, demographic and socio-economic variables, with employment status acting as the socio-economic indicator.
 
 No interaction terms were included in the main model, because the primary aim was to estimate the adjusted main effects of survey year and subgroup characteristics in a parsimonious model. The fitted model can be written as
 
@@ -163,12 +139,12 @@ knitr::kable(
 
 As shown in @tbl-adjusted, the adjusted odds ratios showed a clear age gradient in obesity. Compared with respondents aged 16–24, those aged 55–64 and 65–74 had the highest odds of obesity, at 2.55 and 2.49 times respectively. All other age groups above 24 also had significantly higher odds. By contrast, there was no evidence of a sex difference after adjustment, with the odds ratio for males compared with females close to 1.
 
-Employment status also showed important adjusted differences. Compared with the reference employment category, respondents in full-time education had substantially lower odds of obesity, whereas those permanently unable to work had higher odds. The remaining employment categories were all close to 1 and were not statistically significant. Overall, these findings indicate that obesity prevalence differed mainly by age group and employment status rather than by sex after adjustment for the other variables. In addition, year effects were also close to 1 and showed no clear evidence of change over time after adjustment.
+Employment status also had a significant effect on obesity. Compared with the reference group, people in full-time education had lower odds of obesity, while those permanently unable to work had higher odds. Other employment groups were not statistically significant because their odds ratios were close to 1. Overall, after adjusting for other variables, obesity was mainly associated with age group and employment status rather than sex. The year variable also showed no clear change over time.
 
 ```{r}
 #| fig-cap: "Adjusted odds ratios for obesity from the multivariable logistic regression model."
-#| fig-width: 6.5
-#| fig-height: 5
+#| fig-width: 8
+#| fig-height: 3.8
 #| out-width: "82%"
 #| fig-align: "center"
 #| label: fig-or
