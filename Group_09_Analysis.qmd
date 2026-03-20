@@ -105,6 +105,36 @@ We see from @tbl-employmentprop that based off of the category of the variable *
 
 The table also shows that those unable to work and those retired appear to have a higher percentage in the overweight category compared to other levels of *Employment*. These same groups also show a lower percentage of normal BMI.
 
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-geomcol
+#| fig-cap: Obesity prevalence by age group and sex
+#| error: true
+age_summary_prop <- DAProject9 %>%
+  group_by(AgeGroup, Sex) %>% 
+  summarise(
+    Total_People_In_Group = n(),
+    Obese_Count = sum(BMIgroup=="Obese"), 
+    Percentage = Obese_Count / Total_People_In_Group, 
+    .groups = 'drop'
+  )
+
+
+ggplot(data = age_summary_prop, aes(x = AgeGroup, y = Percentage,fill=Sex)) +
+  geom_col(position = "dodge") + 
+  scale_y_continuous() + 
+  labs(
+    title = "Obesity prevalence by age group and sex",
+    x = "Age group",
+    y = "Obesity prevalence"
+  ) +
+  scale_y_continuous(labels = scales::percent)
+```
+
+@fig-geomcol suggests a clear age gradient in obesity prevalence. The proportion classified as obese increases from the youngest age groups into middle and early older adulthood, before falling slightly in the 75+ group. The differences between male and female sexes appear smaller than the differences shown across age groups, suggesting age may be a more important source of variation than sex.
+
 # Formal Data Analysis {#sec-fda}
 
 # Conclusions {#sec-conc}
