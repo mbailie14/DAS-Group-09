@@ -8,7 +8,7 @@ format:
     fontsize: 10pt
     linestretch: 1.05
     fig-pos: "htbp"
-    number-sections: false
+    number-sections: true
 execute:
   echo: false
   warning: false
