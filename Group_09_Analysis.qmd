@@ -4,7 +4,7 @@ format:
   pdf:
     documentclass: article
     geometry:
-      - margin=1.8cm
+      - margin=1.0cm
     fontsize: 10pt
     linestretch: 1.05
     fig-pos: "htbp"
