@@ -26,7 +26,27 @@ DAProject9 <- read.csv("DAProject9.csv")
 
 # Introduction {#sec-intro}
 
-The 2008 - 2012 Scottish Health Survey provides key insight into the health trends of Scottish residents. It provides information on *age*, *sex*, *employment status*, and *BMI* of people, sorted by the year the survey data was collected. The following report seeks to explore the relationship of obesity over time, exploring whether or not the prevalence of obesity is changing. The report also seeks to explore whether or not there any differences in obesity by age, gender, socio-economic status or lifestyle factors.
+## Background
+
+The *2008 - 2012 Scottish Health Survey* provides key insight into the health trends of Scottish residents. In particular, the **weight classification group** of individuals has been closely monitored, alongside an array of lifestyle factors. In this report, we seek to explore the prevalence of **obesity** in the population over time, as well as its relationship with these lifestyle factors.
+
+## Variables
+
+**AgeGroup**: Age range of individual.
+
+**Sex**: Male/Female.
+
+**Employment**: Employment status of individual.
+
+**Year**: Year of survey data collection.
+
+**BMIgroup**: Weight classification group of individual.
+
+## Questions of Interest
+
+1.  Has the prevalence of obesity in Scotland changed over the given years of the Scottish Health Survey?
+
+2.  Are there any differences in obesity by age, gender, socio-economic status or lifestyle factors?
 
 @sec-eda consists of an exploratory analysis of the Survey data and explores the potential relationship between obesity and time, and whether there are any differences in obesity by other factors. @sec-fda contains the results from fitting a multiple regression model to the data, as well as the assessment of the model assumptions. Concluding remarks are given in @sec-conc.
 
