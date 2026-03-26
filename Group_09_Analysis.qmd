@@ -58,7 +58,6 @@ The *2008 - 2012 Scottish Health Survey* provides key insight into the health tr
 
 # Exploratory Data Analysis {#sec-eda}
 
-
 ```{r}
 #| echo: false
 #| warning: false
@@ -97,6 +96,7 @@ ggplot(summary_table, aes(x = factor(Year), y = Proportion, color = BMIgroup, gr
     color = "BMI Group"
   )
 ```
+
 As displayed in @fig-barplot and @fig-linegraph, the proportion of each *BMIgroup* category does not appear to have changed much between 2008-2012, based off of the data collected. @fig-linegraph shows that the proportion of *Underweight* responses has remained constant, whereas *Overweight*, *Obese*, and *Normal* have displayed small changes, but there does not appear to be a trend year-on-year.
 
 ```{r}
@@ -177,18 +177,44 @@ where $Y_i = 1$ indicates that respondent $i$ was classified as obese. The refer
 ```{r}
 library(tidyverse)
 library(sjPlot)
-library(performance)
-library(kableExtra)
 library(knitr)
 library(stringr)
-DAProject9 <- read.csv("DAProject9.csv")
+
+dat <- read.csv("DAProject9.csv", stringsAsFactors = FALSE) |>
+  mutate(
+    obesity = if_else(BMIgroup == "Obese", 1L, 0L),
+    Year = factor(Year, levels = c(2008, 2009, 2010, 2011, 2012)),
+    AgeGroup = factor(
+      AgeGroup,
+      levels = c("16-24", "25-34", "35-44", "45-54", "55-64", "65-74", "75+")
+    ),
+    Sex = factor(Sex, levels = c("Female", "Male")),
+    Employment = factor(
+      Employment,
+      levels = c(
+        "In paid employment, self-employed or on gov't training",
+        "Doing something else",
+        "In full-time education",
+        "Looking after home/family",
+        "Looking for/intending to look for paid work",
+        "Perm unable to work",
+        "Retired"
+      )
+    )
+  )
+
+fit_obesity <- glm(
+  obesity ~ Year + AgeGroup + Sex + Employment,
+  data = dat,
+  family = binomial
+)
 ```
 
 To assess the overall contribution of each explanatory variable, likelihood ratio tests were carried out by removing each term from the full model in turn. The results are shown below.
 
 ```{r}
 #| tbl-cap: "Likelihood ratio tests for the multivariable logistic regression model"
-#| label: tbl-likelihhod
+#| label: tbl-likelihood
 
 lrt_results <- drop1(fit_obesity, test = "Chisq") |>
   as.data.frame() |>
@@ -204,97 +230,199 @@ lrt_results <- drop1(fit_obesity, test = "Chisq") |>
 kable(lrt_results, align = c("l", "r", "r", "r"))
 ```
 
-As shown in @tbl-likelihhod, Year did not make a statistically significant contribution to the adjusted model ($\chi^2 = 4.03$, $df = 4$, $p = 0.401$). Therefore, there is no strong adjusted evidence that obesity prevalence changed across the five survey years. In contrast, AgeGroup made by far the strongest contribution ($\chi^2 = 287.69$, $df = 6$, $p < 0.001$), while Employment also remained significant after adjustment ($\chi^2 = 66.06$, $df = 6$, $p < 0.001$). Sex was not significant overall ($\chi^2 = 1.65$, $df = 1$, $p = 0.199$). Taken together, these results suggest that the main differences in obesity prevalence were associated with age and employment status rather than survey year or sex.
+As shown in @tbl-likelihood, Year did not make a statistically significant contribution to the adjusted model ($\chi^2 = 4.03$, $df = 4$, $p = 0.401$). Therefore, there is no strong adjusted evidence that obesity prevalence changed across the five survey years. In contrast, AgeGroup made by far the strongest contribution ($\chi^2 = 287.69$, $df = 6$, $p < 0.001$), while Employment also remained significant after adjustment ($\chi^2 = 66.06$, $df = 6$, $p < 0.001$). Sex was not significant overall ($\chi^2 = 1.65$, $df = 1$, $p = 0.199$). Taken together, these results suggest that the main differences in obesity prevalence were associated with age and employment status rather than survey year or sex.
 
-
+The adjusted odds ratios provide the main interpretation of the fitted model. Exponentiated coefficients are presented with 95% confidence intervals to summarise the adjusted associations with obesity.
 
 ```{r}
-#| echo: false
-#| warning: false
-#| message: false
-#| label: fig-linegraph
-#| fig-cap: Linegraph showing the trend of BMI Group, year on year
-#| error: true
-summary_table <- DAProject9 %>%
-  group_by(Year, BMIgroup) %>%
-  summarise(Count = n(), .groups = "drop_last") %>%
+#| tbl-cap: "Adjusted odds ratios from the multivariable logistic regression model"
+#| label: tbl-adjusted
+
+coef_mat <- summary(fit_obesity)$coefficients
+
+or_results <- tibble(
+  term = rownames(coef_mat),
+  estimate = coef_mat[, 1],
+  se = coef_mat[, 2],
+  p_value = coef_mat[, 4]
+) |>
+  filter(term != "(Intercept)") |>
   mutate(
-    Total_In_Year = sum(Count),
-    Proportion = Count / Total_In_Year)
-  
-ggplot(summary_table, aes(x = factor(Year), y = Proportion, color = BMIgroup, group = BMIgroup)) +
-  geom_line(linewidth = 1.2) + 
-  geom_point(size=3) +
-  labs(
-    title = "Trend of BMI Groups",
-    x = "Year", 
-    y = "Proportion of Population",
-    color = "BMI Group"
+    OR = exp(estimate),
+    CI_low = exp(estimate - 1.96 * se),
+    CI_high = exp(estimate + 1.96 * se),
+
+    Variable = case_when(
+      str_starts(term, "Year") ~ "Year",
+      str_starts(term, "AgeGroup") ~ "Age group",
+      term == "SexMale" ~ "Sex",
+      str_starts(term, "Employment") ~ "Employment",
+      TRUE ~ term
+    ),
+
+    Level = case_when(
+      str_starts(term, "Year") ~ str_remove(term, "^Year"),
+      str_starts(term, "AgeGroup") ~ str_remove(term, "^AgeGroup"),
+      term == "SexMale" ~ "Male",
+      str_starts(term, "Employment") ~ str_remove(term, "^Employment"),
+      TRUE ~ term
+    ),
+
+    Level = recode(
+      Level,
+      "Doing something else" = "Doing something else",
+      "In full-time education" = "Full-time education",
+      "Looking after home/family" = "Home/family",
+      "Looking for/intending to look for paid work" = "Seeking paid work",
+      "Perm unable to work" = "Unable to work",
+      "Retired" = "Retired"
+    ),
+
+    `Odds ratio` = sprintf("%.2f", OR),
+    `95% CI` = sprintf("%.2f to %.2f", CI_low, CI_high),
+    `p-value` = ifelse(p_value < 0.001, "<0.001", sprintf("%.3f", p_value))
+  ) |>
+  select(Variable, Level, `Odds ratio`, `95% CI`, `p-value`)
+
+knitr::kable(
+  or_results,
+  align = c("l", "l", "r", "r", "r"),
+  booktabs = TRUE
+)
+```
+
+As shown in @tbl-adjusted, the adjusted odds ratios showed a clear age gradient in obesity. Compared with respondents aged 16–24, those aged 55–64 and 65–74 had the highest odds of obesity, at 2.55 and 2.49 times respectively. All other age groups above 24 also had significantly higher odds. By contrast, there was no evidence of a sex difference after adjustment, with the odds ratio for males compared with females close to 1.
+
+Employment status also had a significant effect on obesity. Compared with the reference group, people in full-time education had lower odds of obesity, while those permanently unable to work had higher odds. Other employment groups were not statistically significant because their odds ratios were close to 1. Overall, after adjusting for other variables, obesity was mainly associated with age group and employment status rather than sex. The year variable also showed no clear change over time.
+
+```{r}
+#| fig-cap: "Adjusted odds ratios for obesity from the multivariable logistic regression model."
+#| fig-width: 8
+#| fig-height: 3.8
+#| out-width: "82%"
+#| fig-align: "center"
+#| label: fig-or
+#| fig-pos: "H"
+plot_model(
+  fit_obesity,
+  type = "est",
+  transform = "exp",
+  show.values = TRUE,
+  show.p = FALSE,
+  value.offset = 0.28,
+  vline.color = "grey40",
+  line.size = 0.9,
+  dot.size = 2.5,
+  title = "Odds ratios for obesity",
+  axis.title = c("Odds ratio", ""),
+  term.labels = c(
+    "Year [2009]",
+    "Year [2010]",
+    "Year [2011]",
+    "Year [2012]",
+    "AgeGroup [25–34]",
+    "AgeGroup [35–44]",
+    "AgeGroup [45–54]",
+    "AgeGroup [55–64]",
+    "AgeGroup [65–74]",
+    "AgeGroup [75+]",
+    "Sex [Male]",
+    "Employment [Doing something else]",
+    "Employment [In full-time education]",
+    "Employment [Looking after home/family]",
+    "Employment [Looking for/intending to look for paid work]",
+    "Employment [Perm unable to work]",
+    "Employment [Retired]"
+  )
+) +
+  theme_classic(base_size = 11) +
+  theme(
+    plot.title = element_text(face = "bold", hjust = 0.5),
+    axis.text.y = element_text(size = 10)
   )
 ```
-As displayed in @fig-barplot and @fig-linegraph, the proportion of each *BMIgroup* category does not appear to have changed much between 2008-2012, based off of the data collected. @fig-linegraph shows that the proportion of *Underweight* responses has remained constant, whereas *Overweight*, *Obese*, and *Normal* have displayed small changes, but there does not appear to be a trend year-on-year.
+
+@fig-or shows the adjusted odds ratios for obesity from the multivariable logistic regression model, with 95% confidence intervals. After adjustment for the other variables, survey year showed little evidence of change in obesity prevalence, as all year-specific odds ratios were close to 1. In contrast, age group showed the strongest pattern, with respondents aged 55–64 and 65–74 having substantially higher odds of obesity than those aged 16–24. Employment status also remained important, with lower odds among those in full-time education and higher odds among those permanently unable to work. Sex was not associated with obesity after adjustment.
 
 ```{r}
-#| echo: false
-#| warning: false
-#| message: false
-#| label: tbl-employmentprop
-#| tbl-cap: Percentage of each BMIgroup category in each category of Employment
-
-emp_summary <- DAProject9 %>%
-  group_by(Employment, BMIgroup) %>%
-  summarise(Count = n(), .groups = "drop_last") %>%
-  mutate(
-    Proportion = Count / sum(Count),
-    Percentage = round(Proportion * 100, 1)
-  ) %>%
-  ungroup()
-emp_table_wide <- emp_summary %>%
-  select(Employment, BMIgroup, Percentage) %>%
-  pivot_wider(
-    names_from = BMIgroup, 
-    values_from = Percentage, 
-    values_fill = 0
-  ) %>%
-  mutate(across(-Employment, ~paste0(., "%")))
-
-kable(emp_table_wide)
-
+#| fig-cap: "Adjusted predicted probability of obesity by survey year"
+#| fig-width: 5.5
+#| fig-height: 3.6
+#| out-width: '65%'
+#| fig-align: 'center'
+#| label: fig-survey
+#| fig-pos: "H"
+plot_model(
+  fit_obesity,
+  type = "pred",
+  terms = "Year",
+  axis.title = c("Survey year", "Predicted probability of obesity")
+) +
+  theme(
+    plot.title = element_blank()
+  )
 ```
 
-We see from @tbl-employmentprop that based off of the category of the variable *Employment*, the percentage of people in full-time education and obese or overweight is significantly lower, whereas the percentage of those with a normal BMI is much higher.
-
-The table also shows that those unable to work and those retired appear to have a higher percentage in the overweight category compared to other levels of *Employment*. These same groups also show a lower percentage of normal BMI.
+As shown in @fig-survey, the adjusted predicted probabilities of obesity were very similar across the five survey years, and the confidence intervals overlapped substantially. This visual pattern agrees with the likelihood ratio test and suggests that obesity prevalence remained broadly stable from 2008 to 2012 after controlling for age group, sex and employment.
 
 ```{r}
-#| echo: false
-#| warning: false
-#| message: false
-#| label: fig-geomcol
-#| fig-cap: Obesity prevalence by age group and sex
-#| error: true
-age_summary_prop <- DAProject9 %>%
-  group_by(AgeGroup, Sex) %>% 
-  summarise(
-    Total_People_In_Group = n(),
-    Obese_Count = sum(BMIgroup=="Obese"), 
-    Percentage = Obese_Count / Total_People_In_Group, 
-    .groups = 'drop'
-  )
+#| fig-cap: "Adjusted predicted probability of obesity by age group"
+#| fig-width: 5.5
+#| fig-height: 3.6
+#| out-width: '65%'
+#| fig-align: 'center'
+#| label: fig-age
+#| fig-pos: "H"
+plot_model(
+  fit_obesity,
+  type = "pred",
+  terms = "AgeGroup",
+  axis.title = c("Age group", "Predicted probability of obesity")
+) +
+  theme(
+    plot.title = element_blank()
+    )
+```
 
+As shown in @fig-age Adjusted predicted probabilities were also plotted for age group. The fitted probabilities increase clearly from 16--24 into middle adulthood, reach their highest level around 55--64 and 65--74, and then fall slightly in the 75+ group. This confirms a strong age gradient in obesity prevalence and is consistent with the large adjusted odds ratios for the middle-aged and early older groups.
 
-ggplot(data = age_summary_prop, aes(x = AgeGroup, y = Percentage,fill=Sex)) +
-  geom_col(position = "dodge") + 
-  scale_y_continuous() + 
-  labs(
-    title = "Obesity prevalence by age group and sex",
-    x = "Age group",
-    y = "Obesity prevalence"
+```{r}
+#| fig-cap: "Adjusted predicted probability of obesity by employment status"
+#| fig-width: 8
+#| fig-height: 4.2
+#| out-width: '68%'
+#| fig-align: 'center'
+#| label: fig-employment
+#| fig-pos: "H"
+p_emp <- plot_model(
+  fit_obesity,
+  type = "pred",
+  terms = "Employment",
+  axis.title = c("Employment status", "Predicted probability of obesity")
+)
+
+p_emp +
+  scale_x_continuous(
+    breaks = sort(unique(p_emp$data$x)),
+    labels = c(
+      "Paid employment /\nself-employed /\ngov't training",
+      "Doing\nsomething else",
+      "In full-time\neducation",
+      "Looking after\nhome/family",
+      "Seeking\npaid work",
+      "Unable\nto work",
+      "Retired"
+    )
   ) +
-  scale_y_continuous(labels = scales::percent)
+  theme(
+    plot.title = element_blank(),
+    axis.text.x = element_text(size = 9, lineheight = 0.9)
+  )
 ```
 
-@fig-geomcol suggests a clear age gradient in obesity prevalence. The proportion classified as obese increases from the youngest age groups into middle and early older adulthood, before falling slightly in the 75+ group. The differences between male and female sexes appear smaller than the differences shown across age groups, suggesting age may be a more important source of variation than sex.
+As shown in @fig-employment, a final adjusted probability plot was used to compare employment groups more clearly. The highest fitted probability occurs among respondents who were permanently unable to work, while the lowest fitted probability occurs among those in full-time education. Most of the remaining employment groups are much closer to the reference category after adjustment, which supports the conclusion that employment differences are present but are more selective than the age differences.
+
+Overall, the formal analysis provides a clear answer to the two research questions. There is no strong adjusted evidence that obesity prevalence changed over time between 2008 and 2012. However, there are clear subgroup differences, especially by age group and employment status. Obesity was most strongly associated with middle and early older adulthood, and it was also more common among respondents permanently unable to work and less common among those in full-time education. After adjustment for the other variables, there was no clear overall sex difference. Because this dataset does not include direct lifestyle variables, the formal analysis cannot assess lifestyle effects directly and is therefore limited to the available demographic and socio-economic measures.
 
 
 # Conclusions {#sec-conc}
