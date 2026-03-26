@@ -15,6 +15,8 @@ execute:
   message: false
 ---
 # Exploratory Data Analysis {#sec-eda}
+
+# Formal Data Analysis {#sec-fda}
 Formal analysis was carried out using multivariable logistic regression, with obesity status as the binary response. Following the project brief, a new response variable was created from `BMIgroup`: respondents in the Obese category were coded as obese, while all remaining respondents were coded as not obese. Year, age group, sex and employment status were all entered as categorical explanatory variables. Because Project 9 does not contain direct lifestyle measures, the formal model focuses on the available survey year, demographic and socio-economic variables, with employment status acting as the socio-economic indicator.
 
 No interaction terms were included in the main model, because the primary aim was to estimate the adjusted main effects of survey year and subgroup characteristics in a parsimonious model. The fitted model can be written as
@@ -160,7 +162,5 @@ ggplot(data = age_summary_prop, aes(x = AgeGroup, y = Percentage,fill=Sex)) +
 ```
 
 @fig-geomcol suggests a clear age gradient in obesity prevalence. The proportion classified as obese increases from the youngest age groups into middle and early older adulthood, before falling slightly in the 75+ group. The differences between male and female sexes appear smaller than the differences shown across age groups, suggesting age may be a more important source of variation than sex.
-
-# Formal Data Analysis {#sec-fda}
 
 # Conclusions {#sec-conc}
