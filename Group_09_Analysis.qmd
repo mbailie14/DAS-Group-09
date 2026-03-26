@@ -14,7 +14,7 @@ execute:
   warning: false
   message: false
 ---
-# Formal Data Analysis {#sec-fda}
+# Exploratory Data Analysis {#sec-eda}
 Formal analysis was carried out using multivariable logistic regression, with obesity status as the binary response. Following the project brief, a new response variable was created from `BMIgroup`: respondents in the Obese category were coded as obese, while all remaining respondents were coded as not obese. Year, age group, sex and employment status were all entered as categorical explanatory variables. Because Project 9 does not contain direct lifestyle measures, the formal model focuses on the available survey year, demographic and socio-economic variables, with employment status acting as the socio-economic indicator.
 
 No interaction terms were included in the main model, because the primary aim was to estimate the adjusted main effects of survey year and subgroup characteristics in a parsimonious model. The fitted model can be written as
