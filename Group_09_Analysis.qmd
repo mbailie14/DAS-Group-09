@@ -103,7 +103,7 @@ emp_table_wide <- emp_summary %>%
   ) %>%
   mutate(across(-Employment, ~paste0(., "%")))
 
-kable(emp_table_wide, caption = "Percentage of BMI Group within each Employment Category")
+kable(emp_table_wide)
 
 ```
 
