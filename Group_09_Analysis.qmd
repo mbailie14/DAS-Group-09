@@ -14,12 +14,19 @@ execute:
   warning: false
   message: false
 ---
+# Formal Data Analysis {#sec-fda}
+Formal analysis was carried out using multivariable logistic regression, with obesity status as the binary response. Following the project brief, a new response variable was created from `BMIgroup`: respondents in the Obese category were coded as obese, while all remaining respondents were coded as not obese. Year, age group, sex and employment status were all entered as categorical explanatory variables. Because Project 9 does not contain direct lifestyle measures, the formal model focuses on the available survey year, demographic and socio-economic variables, with employment status acting as the socio-economic indicator.
+
+No interaction terms were included in the main model, because the primary aim was to estimate the adjusted main effects of survey year and subgroup characteristics in a parsimonious model. The fitted model can be written as
+
+$$
+\text{logit}\{P(Y_i = 1)\}
+= \beta_0 + \text{Year}_i + \text{AgeGroup}_i + \text{Sex}_i + \text{Employment}_i,
+$$
+
+where $Y_i = 1$ indicates that respondent $i$ was classified as obese. The reference categories were set to 2008 for year, 16--24 for age group, Female for sex, and In paid employment, self-employed or on gov't training for employment status.
 
 ```{r}
-#| echo: false
-#| warning: false
-#| message: false
-library(ggplot2)
 library(tidyverse)
 library(sjPlot)
 library(performance)
@@ -29,14 +36,27 @@ library(stringr)
 DAProject9 <- read.csv("DAProject9.csv")
 ```
 
+To assess the overall contribution of each explanatory variable, likelihood ratio tests were carried out by removing each term from the full model in turn. The results are shown below.
 
-# Introduction {#sec-intro}
+```{r}
+#| tbl-cap: "Likelihood ratio tests for the multivariable logistic regression model"
+#| label: tbl-likelihhod
 
-The 2008 - 2012 Scottish Health Survey provides key insight into the health trends of Scottish residents. It provides information on *age*, *sex*, *employment status*, and *BMI* of people, sorted by the year the survey data was collected. The following report seeks to explore the relationship of obesity over time, exploring whether or not the prevalence of obesity is changing. The report also seeks to explore whether or not there any differences in obesity by age, gender, socio-economic status or lifestyle factors.
+lrt_results <- drop1(fit_obesity, test = "Chisq") |>
+  as.data.frame() |>
+  tibble::rownames_to_column("Term") |>
+  filter(Term != "<none>") |>
+  transmute(
+    Term,
+    `LR chi-square` = round(LRT, 2),
+    df = Df,
+    `p-value` = ifelse(`Pr(>Chi)` < 0.001, "<0.001", sprintf("%.3f", `Pr(>Chi)`))
+  )
 
-@sec-eda consists of an exploratory analysis of the Survey data and explores the potential relationship between obesity and time, and whether there are any differences in obesity by other factors. @sec-fda contains the results from fitting a multiple regression model to the data, as well as the assessment of the model assumptions. Concluding remarks are given in @sec-conc.
+kable(lrt_results, align = c("l", "r", "r", "r"))
+```
 
-# Exploratory Data Analysis {#sec-eda}
+As shown in @tbl-likelihhod, Year did not make a statistically significant contribution to the adjusted model ($\chi^2 = 4.03$, $df = 4$, $p = 0.401$). Therefore, there is no strong adjusted evidence that obesity prevalence changed across the five survey years. In contrast, AgeGroup made by far the strongest contribution ($\chi^2 = 287.69$, $df = 6$, $p < 0.001$), while Employment also remained significant after adjustment ($\chi^2 = 66.06$, $df = 6$, $p < 0.001$). Sex was not significant overall ($\chi^2 = 1.65$, $df = 1$, $p = 0.199$). Taken together, these results suggest that the main differences in obesity prevalence were associated with age and employment status rather than survey year or sex.
 
 
 ```{r}
