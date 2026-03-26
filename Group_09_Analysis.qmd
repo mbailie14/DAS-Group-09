@@ -163,6 +163,153 @@ ggplot(data = age_summary_prop, aes(x = AgeGroup, y = Percentage,fill=Sex)) +
 
 # Formal Data Analysis {#sec-fda}
 
+Formal analysis was carried out using multivariable logistic regression, with obesity status as the binary response. Following the project brief, a new response variable was created from `BMIgroup`: respondents in the Obese category were coded as obese, while all remaining respondents were coded as not obese. Year, age group, sex and employment status were all entered as categorical explanatory variables. Because Project 9 does not contain direct lifestyle measures, the formal model focuses on the available survey year, demographic and socio-economic variables, with employment status acting as the socio-economic indicator.
+
+No interaction terms were included in the main model, because the primary aim was to estimate the adjusted main effects of survey year and subgroup characteristics in a parsimonious model. The fitted model can be written as
+
+$$
+\text{logit}\{P(Y_i = 1)\}
+= \beta_0 + \text{Year}_i + \text{AgeGroup}_i + \text{Sex}_i + \text{Employment}_i,
+$$
+
+where $Y_i = 1$ indicates that respondent $i$ was classified as obese. The reference categories were set to 2008 for year, 16--24 for age group, Female for sex, and In paid employment, self-employed or on gov't training for employment status.
+
+```{r}
+library(tidyverse)
+library(sjPlot)
+library(performance)
+library(kableExtra)
+library(knitr)
+library(stringr)
+DAProject9 <- read.csv("DAProject9.csv")
+```
+
+To assess the overall contribution of each explanatory variable, likelihood ratio tests were carried out by removing each term from the full model in turn. The results are shown below.
+
+```{r}
+#| tbl-cap: "Likelihood ratio tests for the multivariable logistic regression model"
+#| label: tbl-likelihhod
+
+lrt_results <- drop1(fit_obesity, test = "Chisq") |>
+  as.data.frame() |>
+  tibble::rownames_to_column("Term") |>
+  filter(Term != "<none>") |>
+  transmute(
+    Term,
+    `LR chi-square` = round(LRT, 2),
+    df = Df,
+    `p-value` = ifelse(`Pr(>Chi)` < 0.001, "<0.001", sprintf("%.3f", `Pr(>Chi)`))
+  )
+
+kable(lrt_results, align = c("l", "r", "r", "r"))
+```
+
+As shown in @tbl-likelihhod, Year did not make a statistically significant contribution to the adjusted model ($\chi^2 = 4.03$, $df = 4$, $p = 0.401$). Therefore, there is no strong adjusted evidence that obesity prevalence changed across the five survey years. In contrast, AgeGroup made by far the strongest contribution ($\chi^2 = 287.69$, $df = 6$, $p < 0.001$), while Employment also remained significant after adjustment ($\chi^2 = 66.06$, $df = 6$, $p < 0.001$). Sex was not significant overall ($\chi^2 = 1.65$, $df = 1$, $p = 0.199$). Taken together, these results suggest that the main differences in obesity prevalence were associated with age and employment status rather than survey year or sex.
+
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-barplot
+#| fig-cap: Barplot showing the proportion of each BMI Group, grouped by year
+ggplot(DAProject9, aes(x = factor(Year), fill = BMIgroup)) +
+  geom_bar(position = "fill") +
+  labs(
+    title = "Proportion of BMI Group by Year",
+    x = "Year", 
+    y = "Proportion")
+```
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-linegraph
+#| fig-cap: Linegraph showing the trend of BMI Group, year on year
+#| error: true
+summary_table <- DAProject9 %>%
+  group_by(Year, BMIgroup) %>%
+  summarise(Count = n(), .groups = "drop_last") %>%
+  mutate(
+    Total_In_Year = sum(Count),
+    Proportion = Count / Total_In_Year)
+  
+ggplot(summary_table, aes(x = factor(Year), y = Proportion, color = BMIgroup, group = BMIgroup)) +
+  geom_line(linewidth = 1.2) + 
+  geom_point(size=3) +
+  labs(
+    title = "Trend of BMI Groups",
+    x = "Year", 
+    y = "Proportion of Population",
+    color = "BMI Group"
+  )
+```
+As displayed in @fig-barplot and @fig-linegraph, the proportion of each *BMIgroup* category does not appear to have changed much between 2008-2012, based off of the data collected. @fig-linegraph shows that the proportion of *Underweight* responses has remained constant, whereas *Overweight*, *Obese*, and *Normal* have displayed small changes, but there does not appear to be a trend year-on-year.
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: tbl-employmentprop
+#| tbl-cap: Percentage of each BMIgroup category in each category of Employment
+
+emp_summary <- DAProject9 %>%
+  group_by(Employment, BMIgroup) %>%
+  summarise(Count = n(), .groups = "drop_last") %>%
+  mutate(
+    Proportion = Count / sum(Count),
+    Percentage = round(Proportion * 100, 1)
+  ) %>%
+  ungroup()
+emp_table_wide <- emp_summary %>%
+  select(Employment, BMIgroup, Percentage) %>%
+  pivot_wider(
+    names_from = BMIgroup, 
+    values_from = Percentage, 
+    values_fill = 0
+  ) %>%
+  mutate(across(-Employment, ~paste0(., "%")))
+
+kable(emp_table_wide)
+
+```
+
+We see from @tbl-employmentprop that based off of the category of the variable *Employment*, the percentage of people in full-time education and obese or overweight is significantly lower, whereas the percentage of those with a normal BMI is much higher.
+
+The table also shows that those unable to work and those retired appear to have a higher percentage in the overweight category compared to other levels of *Employment*. These same groups also show a lower percentage of normal BMI.
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-geomcol
+#| fig-cap: Obesity prevalence by age group and sex
+#| error: true
+age_summary_prop <- DAProject9 %>%
+  group_by(AgeGroup, Sex) %>% 
+  summarise(
+    Total_People_In_Group = n(),
+    Obese_Count = sum(BMIgroup=="Obese"), 
+    Percentage = Obese_Count / Total_People_In_Group, 
+    .groups = 'drop'
+  )
+
+
+ggplot(data = age_summary_prop, aes(x = AgeGroup, y = Percentage,fill=Sex)) +
+  geom_col(position = "dodge") + 
+  scale_y_continuous() + 
+  labs(
+    title = "Obesity prevalence by age group and sex",
+    x = "Age group",
+    y = "Obesity prevalence"
+  ) +
+  scale_y_continuous(labels = scales::percent)
+```
+
+@fig-geomcol suggests a clear age gradient in obesity prevalence. The proportion classified as obese increases from the youngest age groups into middle and early older adulthood, before falling slightly in the 75+ group. The differences between male and female sexes appear smaller than the differences shown across age groups, suggesting age may be a more important source of variation than sex.
+
+
 # Conclusions {#sec-conc}
 
 Analysis showed no relationship between the probability of obesity and time, suggesting that there has been *no change* in the **prevalence** of obesity in Scotland over the period of the study. However, we did find differences in obesity by some of our other variables. Namely, **age** and **employment status** were shown to relate to probability of obesity.
