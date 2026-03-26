@@ -207,19 +207,6 @@ kable(lrt_results, align = c("l", "r", "r", "r"))
 As shown in @tbl-likelihhod, Year did not make a statistically significant contribution to the adjusted model ($\chi^2 = 4.03$, $df = 4$, $p = 0.401$). Therefore, there is no strong adjusted evidence that obesity prevalence changed across the five survey years. In contrast, AgeGroup made by far the strongest contribution ($\chi^2 = 287.69$, $df = 6$, $p < 0.001$), while Employment also remained significant after adjustment ($\chi^2 = 66.06$, $df = 6$, $p < 0.001$). Sex was not significant overall ($\chi^2 = 1.65$, $df = 1$, $p = 0.199$). Taken together, these results suggest that the main differences in obesity prevalence were associated with age and employment status rather than survey year or sex.
 
 
-```{r}
-#| echo: false
-#| warning: false
-#| message: false
-#| label: fig-barplot
-#| fig-cap: Barplot showing the proportion of each BMI Group, grouped by year
-ggplot(DAProject9, aes(x = factor(Year), fill = BMIgroup)) +
-  geom_bar(position = "fill") +
-  labs(
-    title = "Proportion of BMI Group by Year",
-    x = "Year", 
-    y = "Proportion")
-```
 
 ```{r}
 #| echo: false
