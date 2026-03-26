@@ -144,3 +144,9 @@ ggplot(data = age_summary_prop, aes(x = AgeGroup, y = Percentage,fill=Sex)) +
 # Formal Data Analysis {#sec-fda}
 
 # Conclusions {#sec-conc}
+
+Analysis showed no relationship between the probability of obesity and time, suggesting that there has been *no change* in the **prevalence** of obesity in Scotland over the period of the study. However, we did find differences in obesity by some of our other variables. Namely, **age** and **employment status** were shown to relate to probability of obesity.
+
+Our analysis suggests that one's probability of obesity *increases* into middle adulthood and peaks at the **55-64** and **65-74** groups before *declining* for those in the **75+** group. Those in **full-time education** had significantly *lower* odds than the baseline category, while those who are **permanently unable to work** had *higher* odds. All other employment status categories were *not* found to be significant. The individuals' **sex** was found to have *no effect* with probability of obesity.
+
+This study provides great framework for understanding obesity in our population and can be used as a platform for future research. Recording additional lifestyle factors in future surveys, as well monitoring obesity trends over a larger period of time, will help to further our understanding of the issue.
